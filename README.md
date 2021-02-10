@@ -1,1 +1,2 @@
-# collective_behavior_of_swarms
+# Collective Behavior of Swarms
+## ITU bachelor project
