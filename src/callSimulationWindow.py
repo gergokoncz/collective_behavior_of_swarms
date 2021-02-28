@@ -12,7 +12,7 @@ class MyForm(QDialog):
     def __init__(self):
         super().__init__()
         
-        self.my_sim = DummySim(field_size = (100, 100), n_bots=10, p_resource=0.03)
+        self.my_sim = DummySim(field_size = (20, 20), n_bots=3, p_resource=0.03)
         self.my_sim.init_resources()
         self.my_sim.init_bots()
 
@@ -25,16 +25,15 @@ class MyForm(QDialog):
         self.show()
 
     def startAnimation(self):
-        for _ in range(100):
-            self.my_sim.simulate_step()
-            time.sleep(0.5)
-            print(self.my_sim.bot_coordinates)
-            self.drawAgain()
-
-    def drawAgain(self):
+        #for _ in range(10):
+        self.my_sim.simulate_step()
+        #time.sleep(3)
+        print(self.my_sim.bot_coordinates)
         self.update()
 
     def paintEvent(self, event):
+
+        print(self.my_sim.resource_set)
 
         qp = QPainter()
         qp.begin(self)
@@ -46,17 +45,30 @@ class MyForm(QDialog):
         qp.drawLine(self.frame_x, self.frame_y + 500, self.frame_x + 500, self.frame_y + 500)
         qp.drawLine(self.frame_x, self.frame_y, self.frame_x, self.frame_y + 500)
         qp.drawLine(self.frame_x + 500, self.frame_y, self.frame_x + 500, self.frame_y + 500)
-
-        # draw bots
-        qp.setBrush(QBrush(Qt.red, Qt.SolidPattern))
+        
+        # draw storage
+        qp.setBrush(QBrush(Qt.black, Qt.SolidPattern))
         
         for bot in self.my_sim.bot_coordinates:
-            qp.drawEllipse(self.frame_x + bot[0] * 5, self.frame_y + bot[1] * 5, 5, 5)
-        
+            qp.drawEllipse(self.frame_x + self.my_sim.field_size_x // 2 * 25, self.frame_y + self.my_sim.field_size_y // 2 * 25, 25, 25)
+
         # draw resources
         qp.setBrush(QBrush(Qt.blue, Qt.SolidPattern))
         for resource in self.my_sim.resource_set:
-            qp.drawRect(self.frame_x + resource[0] * 5, self.frame_y + resource[1] * 5, 3, 3)
+            qp.drawRect(self.frame_x + resource[0] * 25, self.frame_y + resource[1] * 25, 15, 15)
+        
+        # draw bots
+        
+        for bot in self.my_sim.bots:
+            print(f'\nBot\n')
+            bot.print_bot()
+            if bot.has_food:
+                qp.setBrush(QBrush(Qt.yellow, Qt.SolidPattern))
+            else:
+                qp.setBrush(QBrush(Qt.red, Qt.SolidPattern))
+            
+            qp.drawEllipse(self.frame_x + bot.pos_x * 25, self.frame_y + bot.pos_y * 25, 15, 15)
+        
 
         qp.end()
 

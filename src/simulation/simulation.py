@@ -67,15 +67,28 @@ class Bot:
         self.options = []
         self.food_dir = []
         self.has_food = False
+        self.current_field_state: Dict = None
+
+    def check_for_close_food():
+        None        
+
+    def is_on_food(self) -> bool:
+        return (self.pos_x, self.pos_y) in self.current_field_state['resource_coordinates']
 
     def update_env(self, state: Dict):
+
+        print('entered update_env')
         
         self.options = {'u', 'd', 'l', 'r'}
         self.food_dir = set()
 
-        if self.has_food:
+        self.current_field_state = state
 
-            if (self.pos_x, self.pos_y) in state['resource_coordinates']:
+        if not self.has_food:
+
+            print('bot does not have food')
+
+            if self.is_on_food():
                 self.has_food = True
 
             else:
@@ -186,15 +199,18 @@ class Bot:
         else:
             self.pos_y -= 1
 
-    def print_pos(self):
+    def print_bot(self):
         print(f'x: {self.pos_x}, y : {self.pos_y}')
+        print(f'options to go: {self.options}')
+        print(f'food seen: {self.food_dir}')
     
 
 def main():
-    my_sim = DummySim(field_size = (100, 100), n_bots = 10, p_resource = 0.1)
+    my_sim = DummySim(field_size = (20, 20), n_bots = 3, p_resource = 0.1)
     my_sim.init_resources()
     my_sim.init_bots()
-    for _ in range(100000):
+    for _ in range(3):
+        print(f'\nRound {_}\n')
         my_sim.simulate_step()
 
 if __name__ == '__main__':
