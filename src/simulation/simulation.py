@@ -17,6 +17,7 @@ class DummySim:
         self.p_resource = p_resource
         self.resource_set = set()
 
+
     def init_resources(self):
         
         chances_field = np.random.rand(self.field_size_x, self.field_size_y)
@@ -64,124 +65,215 @@ class Bot:
     def __init__(self, pos_x, pos_y):
         self.pos_x = pos_x
         self.pos_y = pos_y
+        
         self.options = []
         self.food_dir = []
+        
         self.has_food = False
         self.current_field_state: Dict = None
 
-    def check_for_close_food():
-        None        
+        self.food_one_away = False
+        
+        self.storage_x: int = -1
+        self.storage_y: int = -1
 
+    def check_for_close_food(self):
+        """
+        Check if food is one away and adjust state accordingly
+        """
+        
+        if (self.pos_x - 1, self.pos_y) in self.current_field_state['resource_coordinates']:
+            self.food_dir.add('u')
+            self.food_one_away = True
+            
+            print('food found up')
+
+        if (self.pos_x + 1, self.pos_y) in self.current_field_state['resource_coordinates']:
+            self.food_dir.add('d')
+            self.food_one_away = True
+            
+            print('food found down')
+
+        if (self.pos_x, self.pos_y + 1) in self.current_field_state['resource_coordinates']:
+            self.food_dir.add('r')
+            self.food_one_away = True
+            
+            print('food found right')
+
+        if (self.pos_x, self.pos_y - 1) in self.current_field_state['resource_coordinates']:
+            self.food_dir.add('l')
+            self.food_one_away = True
+            
+            print('food found left')
+
+    def check_for_food_two(self):
+        """
+        Check if food is two steps away and update state
+        """
+        if (self.pos_x - 2, self.pos_y) in self.current_field_state['resource_coordinates']:
+            self.food_dir.add('u')
+
+        if (self.pos_x + 2, self.pos_y) in self.current_field_state['resource_coordinates']:
+            self.food_dir.add('d')
+        
+        if (self.pos_x, self.pos_y + 2) in self.current_field_state['resource_coordinates']:
+            self.food_dir.add('r')
+        
+        if (self.pos_x, self.pos_y - 2) in self.current_field_state['resource_coordinates']:
+            self.food_dir.add('l')
+        
+        # food two away but get 
+        if (self.pos_x - 1, self.pos_y - 1) in self.current_field_state['resource_coordinates']:
+            self.food_dir.update({'u', 'l'})
+        
+        if (self.pos_x - 1, self.pos_y + 1) in self.current_field_state['resource_coordinates']:
+            self.food_dir.update({'u', 'r'})
+        
+        if (self.pos_x + 1, self.pos_y + 1) in self.current_field_state['resource_coordinates']:
+            self.food_dir.update({'r', 'd'})
+        
+        if (self.pos_x + 1, self.pos_y - 1) in self.current_field_state['resource_coordinates']:
+            self.food_dir.update({'d', 'l'})
+
+    def protect_from_collision(self):
+        """
+        Check for closeby bots and take out from options
+        """
+        # remove option if collision could happen
+        if (self.pos_x - 1, self.pos_y) in self.current_field_state['bot_coordinates']:
+            self.food_dir.discard('u')
+            self.options.discard('u')
+
+        if (self.pos_x + 1, self.pos_y) in self.current_field_state['bot_coordinates']:
+            self.food_dir.discard('d')
+            self.options.discard('d')
+
+        if (self.pos_x, self.pos_y + 1) in self.current_field_state['bot_coordinates']:
+            self.food_dir.discard('r')
+            self.options.discard('r')
+
+        if (self.pos_x, self.pos_y - 1) in self.current_field_state['bot_coordinates']:
+            self.food_dir.discard('l')
+            self.options.discard('l')
+        
+        # same with two away just to be sure
+        if (self.pos_x - 2, self.pos_y) in self.current_field_state['bot_coordinates']:
+            self.food_dir.discard('u')
+            self.options.discard('u')
+
+        if (self.pos_x + 2, self.pos_y) in self.current_field_state['bot_coordinates']:
+            self.food_dir.discard('d')
+            self.options.discard('d')
+
+        if (self.pos_x, self.pos_y + 2) in self.current_field_state['bot_coordinates']:
+            self.food_dir.discard('r')
+            self.options.discard('r')
+
+        if (self.pos_x, self.pos_y - 2) in self.current_field_state['bot_coordinates']:
+            self.food_dir.discard('l')
+            self.options.discard('l')
+        
+        # diagonal keep right
+        if (self.pos_x - 1, self.pos_y - 1) in self.current_field_state['bot_coordinates']:
+            self.food_dir.discard('l')
+            self.options.discard('l')
+
+        if (self.pos_x - 1, self.pos_y + 1) in self.current_field_state['bot_coordinates']:
+            self.food_dir.discard('u')
+            self.options.discard('u')
+
+        if (self.pos_x + 1, self.pos_y + 1) in self.current_field_state['bot_coordinates']:
+            self.food_dir.discard('r')
+            self.options.discard('r')
+
+        if (self.pos_x + 1, self.pos_y - 1) in self.current_field_state['bot_coordinates']:
+            self.food_dir.discard('d')
+            self.options.discard('d')
+
+    def avoid_walls(self):
+        """
+        Can't leave environment
+        """
+        pass
+
+    
+    def go_to_storage_unit(self):
+        """
+        Move back to storage unit
+        """
+        self.options = set() # first empty options 
+        
+        if self.pos_y > self.storage_y:
+            self.options.add('l')
+        elif self.pos_y < self.storage_y:
+            self.options.add('r')
+        
+        if self.pos_x > self.storage_x:
+            self.options.add('u')
+        elif self.pos_x < self.storage_x:
+            self.options.add('d')
+
+    
     def is_on_food(self) -> bool:
+        """
+        Check if bot stands currently on food
+        """
         return (self.pos_x, self.pos_y) in self.current_field_state['resource_coordinates']
+    
+    def is_in_storage_unit(self) -> bool:
+        """
+        Check if bot stands currently on food
+        """
+        return self.pos_x == self.storage_x and self.pos_y == self.storage_y
 
+    def store_food(self):
+        """
+        Drop food and increase storage count
+        """
+        global stored_food
+        stored_food += 1
+        self.has_food = False
+        print(stored_food)
+        self.options = set()
+
+    
     def update_env(self, state: Dict):
 
         print('entered update_env')
         
+        # set initial state
         self.options = {'u', 'd', 'l', 'r'}
         self.food_dir = set()
 
         self.current_field_state = state
 
+        self.storage_x = self.current_field_state['field_size'][0] // 2
+        self.storage_y = self.current_field_state['field_size'][1] // 2
+
         if not self.has_food:
-
-            print('bot does not have food')
-
+            # if on food grab it and that is what you do for the step
             if self.is_on_food():
                 self.has_food = True
+                self.options = {}
 
             else:
-                # food one away, directly there, no questions
-                food_one_away = False
+                self.check_for_close_food() 
                 
-                if (self.pos_x - 1, self.pos_y) in state['resource_coordinates']:
-                    self.food_dir.add('u')
-                    print('food found up')
-                    food_one_away = True
-
-                if (self.pos_x + 1, self.pos_y) in state['resource_coordinates']:
-                    self.food_dir.add('d')
-                    print('food found down')
-                    food_one_away = True
-
-                if (self.pos_x, self.pos_y + 1) in state['resource_coordinates']:
-                    self.food_dir.add('r')
-                    print('food found right')
-                    food_one_away = True
-
-                if (self.pos_x, self.pos_y - 1) in state['resource_coordinates']:
-                    self.food_dir.add('l')
-                    food_one_away = True
+                if not self.food_one_away:
+                    self.check_for_food_two()
                 
-                if not food_one_away:
-                    # two away one way for it 
-                    if (self.pos_x - 2, self.pos_y) in state['resource_coordinates']:
-                        self.food_dir.add('u')
-
-                    if (self.pos_x + 2, self.pos_y) in state['resource_coordinates']:
-                        self.food_dir.add('d')
-                    
-                    if (self.pos_x, self.pos_y + 2) in state['resource_coordinates']:
-                        self.food_dir.add('r')
-                    
-                    if (self.pos_x, self.pos_y - 2) in state['resource_coordinates']:
-                        self.food_dir.add('l')
-                    
-                    # food two away but get 
-                    if (self.pos_x - 1, self.pos_y - 1) in state['resource_coordinates']:
-                        self.food_dir.update({'u', 'l'})
-                    
-                    if (self.pos_x - 1, self.pos_y + 1) in state['resource_coordinates']:
-                        self.food_dir.update({'u', 'r'})
-                    
-                    if (self.pos_x + 1, self.pos_y + 1) in state['resource_coordinates']:
-                        self.food_dir.update({'r', 'd'})
-                    
-                    if (self.pos_x + 1, self.pos_y - 1) in state['resource_coordinates']:
-                        self.food_dir.update({'d', 'l'})
-                
-                # remove option if collision could happen
-                if (self.pos_x - 1, self.pos_y) in state['bot_coordinates']:
-                    self.food_dir.remove('u')
-                    self.options.remove('u')
-
-                if (self.pos_x + 1, self.pos_y) in state['bot_coordinates']:
-                    self.food_dir.remove('d')
-                    self.options.remove('d')
-
-                if (self.pos_x, self.pos_y + 1) in state['bot_coordinates']:
-                    self.food_dir.add('r')
-                    self.options.add('r')
-
-                if (self.pos_x, self.pos_y - 1) in state['bot_coordinates']:
-                    self.food_dir.add('l')
-                    self.options.add('l')
-
         else:
-            center_x, center_y = state['field_size']
-            center_x //= 2
-            center_y //= 2
-            # is in center already?
-            if self.pos_x == center_x and self.pos_y == center_y:
-                global stored_food
-                stored_food += 1
-                self.has_food = False
-                print(stored_food)
+            if self.is_in_storage_unit():
+                self.store_food()
             
             else:
-                # go to center
-                if self.pos_y > center_y:
-                    self.options.add('r')
-                elif self.pos_y < center_y:
-                    self.options.add('l')
-                
-                if self.pos_x > center_x:
-                    self.options.add('u')
-                elif self.pos_x < center_x:
-                    self.options.add('d')
+                self.go_to_storage_unit()
+
+        self.protect_from_collision()
+        self.avoid_walls()
 
     def step(self) -> (int, int):
+        
         if len(self.food_dir) > 0:
             self._move_according_to_direction(random.choice(list(self.food_dir)))
         elif len(self.options) > 0:
@@ -190,6 +282,9 @@ class Bot:
         return (self.pos_x, self.pos_y)
         
     def _move_according_to_direction(self, dir):
+        """
+        Make the move according to chosen direction
+        """
         if dir == 'u':
             self.pos_x -= 1
         elif  dir == 'd':
@@ -200,13 +295,16 @@ class Bot:
             self.pos_y -= 1
 
     def print_bot(self):
+        """
+        Print bot state
+        """
         print(f'x: {self.pos_x}, y : {self.pos_y}')
         print(f'options to go: {self.options}')
         print(f'food seen: {self.food_dir}')
     
 
 def main():
-    my_sim = DummySim(field_size = (20, 20), n_bots = 3, p_resource = 0.1)
+    my_sim = DummySim(field_size = (20, 20), n_bots = 3, p_resource = 0.2)
     my_sim.init_resources()
     my_sim.init_bots()
     for _ in range(3):
