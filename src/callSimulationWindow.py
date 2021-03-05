@@ -9,8 +9,8 @@ from simulation.simulation import *
 from gui.SimulationWindow import *
 
 # base variables
-field_x = 20
-field_y = 20
+field_x = 10
+field_y = 10
 
 field_constant = 100 / field_x
 

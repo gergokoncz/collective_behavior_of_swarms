@@ -194,8 +194,19 @@ class BaseBot:
         """
         Can't leave environment
         """
-        pass
+        if self.pos_x == 0:
+            self.food_dir.discard('u')
+            self.options.discard('u')
+        elif self.pos_x >= self.current_field_state['field_size'][0] - 1:
+            self.food_dir.discard('d')
+            self.food_dir.discard('d')
 
+        if self.pos_y == 0:
+            self.food_dir.discard('l')
+            self.options.discard('l')
+        elif self.pos_x >= self.current_field_state['field_size'][1] - 1:
+            self.food_dir.discard('r')
+            self.food_dir.discard('r')
     
     def go_to_storage_unit(self) -> None:
         """
