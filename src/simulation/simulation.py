@@ -1,24 +1,24 @@
 import numpy as np
-from typing import Dict
+from typing import Dict, Tuple, List, Set
 import random
 
 stored_food = 0
 
 class DummySim:
-    def __init__(self, field_size: (int, int), n_bots: int, p_resource: float):
+    def __init__(self, field_size: Tuple[int, int], n_bots: int, p_resource: float):
         
         self.field_size_x = field_size[0]
         self.field_size_y = field_size[1]
         
         self.n_bots = n_bots
-        self.bots = []
-        self.bot_coordinates = set()
+        self.bots: List = []
+        self.bot_coordinates: Set = set()
         
         self.p_resource = p_resource
-        self.resource_set = set()
+        self.resource_set: Set = set()
 
 
-    def init_resources(self):
+    def init_resources(self) -> None:
         
         chances_field = np.random.rand(self.field_size_x, self.field_size_y)
         self.resource_field = np.zeros((self.field_size_x, self.field_size_y))
@@ -27,7 +27,7 @@ class DummySim:
         xs, ys = np.where(self.resource_field == 1)
         self.resource_set = {(x, y) for x,y in zip(xs, ys)}
 
-    def init_bots(self):
+    def init_bots(self) -> None:
         center_x = self.field_size_x // 2
         center_y = self.field_size_y // 2
         
@@ -40,9 +40,9 @@ class DummySim:
                 x, y = center_x + rand_vals[0], center_y + rand_vals[1]
             
             self.bot_coordinates.add((x, y))
-            self.bots.append(Bot(x, y))
+            self.bots.append(BaseBot(x, y))
 
-    def simulate_step(self):
+    def simulate_step(self) -> None:
         
         field_state = {
             'field_size': (self.field_size_x, self.field_size_y),
@@ -61,23 +61,23 @@ class DummySim:
 
         
 
-class Bot:
-    def __init__(self, pos_x, pos_y):
+class BaseBot:
+    def __init__(self, pos_x: int, pos_y: int):
         self.pos_x = pos_x
         self.pos_y = pos_y
         
-        self.options = []
-        self.food_dir = []
+        self.options: Set = set()
+        self.food_dir: Set = set()
         
         self.has_food = False
-        self.current_field_state: Dict = None
+        self.current_field_state: Dict = dict()
 
         self.food_one_away = False
         
         self.storage_x: int = -1
         self.storage_y: int = -1
 
-    def check_for_close_food(self):
+    def check_for_close_food(self) -> None:
         """
         Check if food is one away and adjust state accordingly
         """
@@ -106,7 +106,7 @@ class Bot:
             
             print('food found left')
 
-    def check_for_food_two(self):
+    def check_for_food_two(self) -> None:
         """
         Check if food is two steps away and update state
         """
@@ -135,7 +135,7 @@ class Bot:
         if (self.pos_x + 1, self.pos_y - 1) in self.current_field_state['resource_coordinates']:
             self.food_dir.update({'d', 'l'})
 
-    def protect_from_collision(self):
+    def protect_from_collision(self) -> None:
         """
         Check for closeby bots and take out from options
         """
@@ -190,14 +190,14 @@ class Bot:
             self.food_dir.discard('d')
             self.options.discard('d')
 
-    def avoid_walls(self):
+    def avoid_walls(self) -> None:
         """
         Can't leave environment
         """
         pass
 
     
-    def go_to_storage_unit(self):
+    def go_to_storage_unit(self) -> None:
         """
         Move back to storage unit
         """
@@ -226,7 +226,7 @@ class Bot:
         """
         return self.pos_x == self.storage_x and self.pos_y == self.storage_y
 
-    def store_food(self):
+    def store_food(self) -> None:
         """
         Drop food and increase storage count
         """
@@ -237,10 +237,8 @@ class Bot:
         self.options = set()
 
     
-    def update_env(self, state: Dict):
+    def update_env(self, state: Dict) -> None:
 
-        print('entered update_env')
-        
         # set initial state
         self.options = {'u', 'd', 'l', 'r'}
         self.food_dir = set()
@@ -254,7 +252,7 @@ class Bot:
             # if on food grab it and that is what you do for the step
             if self.is_on_food():
                 self.has_food = True
-                self.options = {}
+                self.options = set()
 
             else:
                 self.check_for_close_food() 
@@ -272,7 +270,8 @@ class Bot:
         self.protect_from_collision()
         self.avoid_walls()
 
-    def step(self) -> (int, int):
+    
+    def step(self) -> Tuple[int, int]:
         
         if len(self.food_dir) > 0:
             self._move_according_to_direction(random.choice(list(self.food_dir)))
@@ -281,7 +280,7 @@ class Bot:
         # else stay in place
         return (self.pos_x, self.pos_y)
         
-    def _move_according_to_direction(self, dir):
+    def _move_according_to_direction(self, dir: str) -> None:
         """
         Make the move according to chosen direction
         """
@@ -294,7 +293,7 @@ class Bot:
         else:
             self.pos_y -= 1
 
-    def print_bot(self):
+    def print_bot(self) -> None:
         """
         Print bot state
         """
@@ -304,12 +303,15 @@ class Bot:
     
 
 def main():
-    my_sim = DummySim(field_size = (20, 20), n_bots = 3, p_resource = 0.2)
+    my_sim = DummySim(field_size = (100, 100), n_bots = 10, p_resource = 0.3)
     my_sim.init_resources()
     my_sim.init_bots()
-    for _ in range(3):
-        print(f'\nRound {_}\n')
+    for _ in range(100000):
+        if _ % 1000 == 99:
+            print(f'\nRound {_}\n')
         my_sim.simulate_step()
+
+    print(f'{stored_food}')
 
 if __name__ == '__main__':
     main()

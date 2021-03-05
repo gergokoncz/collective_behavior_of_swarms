@@ -6,13 +6,14 @@
 #
 # WARNING! All changes made in this file will be lost!
 
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
 class Ui_ForagingAntsSimulation(object):
     def setupUi(self, ForagingAntsSimulation):
         ForagingAntsSimulation.setObjectName("ForagingAntsSimulation")
-        ForagingAntsSimulation.resize(700, 700)
+        ForagingAntsSimulation.resize(800, 800)
         self.startButton = QtWidgets.QPushButton(ForagingAntsSimulation)
         self.startButton.setGeometry(QtCore.QRect(20, 10, 81, 25))
         self.startButton.setObjectName("startButton")
