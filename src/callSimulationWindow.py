@@ -5,7 +5,7 @@ import time
 from PyQt5.QtWidgets import QDialog, QApplication
 from PyQt5.QtCore import Qt, QRect
 from PyQt5.QtGui import QPainter, QBrush, QPen
-from simulation.simulation import *
+from simulation.BaseSimulation import *
 from gui.SimulationWindow import *
 
 # base variables
@@ -18,7 +18,7 @@ class MyForm(QDialog):
     def __init__(self):
         super().__init__()
         
-        self.my_sim = DummySim(field_size = (field_x, field_y), n_bots=3, p_resource=0.03)
+        self.my_sim = DummySim(field_size = (field_x, field_y), n_bots=3, p_resource=0.02)
         self.my_sim.init_resources()
         self.my_sim.init_bots()
 
