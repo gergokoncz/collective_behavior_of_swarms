@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import QDialog, QApplication
 from PyQt5.QtCore import Qt, QRect
 from PyQt5.QtGui import QPainter, QBrush, QPen
 from simulation.BaseSimulation import *
+from simulation.PSimulation import *
 from gui.SimulationWindow import *
 
 # base variables
@@ -18,7 +19,8 @@ class MyForm(QDialog):
     def __init__(self):
         super().__init__()
         
-        self.my_sim = DummySim(field_size = (field_x, field_y), n_bots=3, p_resource=0.02)
+        self.my_sim = ProbabilisticSimulation(field_size = (field_x, field_y), 
+            n_bots=3, p_resource=0.03, p_leave_trail=1, p_follow_trail=0.5)
         self.my_sim.init_resources()
         self.my_sim.init_bots()
 
@@ -48,6 +50,13 @@ class MyForm(QDialog):
         qp.drawLine(self.frame_x, self.frame_y + 500, self.frame_x + 500, self.frame_y + 500)
         qp.drawLine(self.frame_x, self.frame_y, self.frame_x, self.frame_y + 500)
         qp.drawLine(self.frame_x + 500, self.frame_y, self.frame_x + 500, self.frame_y + 500)
+
+        # draw pheromone trails
+        if self.my_sim.trails:
+            qp.setBrush(QBrush(Qt.yellow, Qt.SolidPattern))
+            for trail in self.my_sim.trails.keys():
+                qp.drawEllipse(self.frame_x + trail[0] * 5 * field_constant, 
+                    self.frame_y + trail[1] * 5 * field_constant, 2 * field_constant, 2 * field_constant)
         
         # draw storage
         qp.setBrush(QBrush(Qt.black, Qt.SolidPattern))

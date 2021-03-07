@@ -206,6 +206,13 @@ class BaseBot:
         self.has_food = False
         self.options = set()
 
+    def pick_up_food(self) -> None:
+        """
+        When on food pick it up
+        that is all you do in that round so empties options as well
+        """
+        self.has_food = True
+        self.options = set()
     
     
     def update_env(self, state: Dict) -> int:
@@ -224,8 +231,7 @@ class BaseBot:
         if not self.has_food:
             # if on food grab it and that is what you do for the step
             if self.is_on_food():
-                self.has_food = True
-                self.options = set()
+                self.pick_up_food()
 
             else:
                 self.check_for_close_food() 
@@ -297,7 +303,9 @@ class DummySim:
 
 
     def init_resources(self) -> None:
-        
+        """
+        Initialize resources
+        """
         chances_field = np.random.rand(self.field_size_x, self.field_size_y)
         self.resource_field = np.zeros((self.field_size_x, self.field_size_y))
         self.resource_field[chances_field < self.p_resource] = 1
@@ -307,6 +315,9 @@ class DummySim:
         self.resource_set.discard((self.field_size_x // 2, self.field_size_y // 2))
 
     def init_bots(self) -> None:
+        """
+        Initialize bots 
+        """
         center_x = self.field_size_x // 2
         center_y = self.field_size_y // 2
         
