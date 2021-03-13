@@ -1,8 +1,12 @@
 import numpy as np
+from pathlib import Path
 from random import random
 from typing import Tuple
 
-from simulation.BaseSimulation import *
+if 'simulation' in str(Path().cwd()):
+    from BaseSimulation import *
+else:
+    from simulation.BaseSimulation import *
 
 
 class ProbabilisticBot(BaseBot):
@@ -103,17 +107,26 @@ class ProbabilisticSimulation(DummySim):
 
 
 def main():
-    my_sim = ProbabilisticSimulation(field_size = (100, 100), n_bots = 10, p_resource = 0.01, p_leave_trail = 1, p_follow_trail = 0.5)
+    my_sim = ProbabilisticSimulation(field_size = (20, 20), n_bots = 3, p_resource = 0.03, p_leave_trail = 1, p_follow_trail = 0.5)
     my_sim.init_resources()
     my_sim.init_bots()
-    for _ in range(1000):
-        if _ % 1000 == 99:
-            print(f'\nRound {_}\n')
-            print(f'{my_sim.bot_coordinates}')
+    for _ in range(3):
+        #if _ % 1000 == 99:
+        print(f'\nRound {_}\n')
+        print(f'Before step:')
+        print(f'bot_coordinates:{my_sim.bot_coordinates}')
+        print(f'resource_coordinates:{my_sim.resource_set}')
+        for bot in my_sim.bots:
+            bot.print_bot()
+
         my_sim.simulate_step()
+        print(f'\nAfter step:')
+        print(f'bot_coordinates:{my_sim.bot_coordinates}')
+        print(f'resource_coordinates:{my_sim.resource_set}')
+        for bot in my_sim.bots:
+            bot.print_bot()
 
     print(f'{my_sim.stored_food}')
-    None
 
 if __name__ == '__main__':
     main()

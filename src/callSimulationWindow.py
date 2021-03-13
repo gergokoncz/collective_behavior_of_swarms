@@ -55,21 +55,21 @@ class MyForm(QDialog):
         if self.my_sim.trails:
             qp.setBrush(QBrush(Qt.yellow, Qt.SolidPattern))
             for trail in self.my_sim.trails.keys():
-                qp.drawEllipse(self.frame_x + trail[0] * 5 * field_constant, 
-                    self.frame_y + trail[1] * 5 * field_constant, 2 * field_constant, 2 * field_constant)
+                qp.drawEllipse(self.frame_x + trail[1] * 5 * field_constant, 
+                    self.frame_y + trail[0] * 5 * field_constant, 2 * field_constant, 2 * field_constant)
         
         # draw storage
         qp.setBrush(QBrush(Qt.black, Qt.SolidPattern))
         
         for bot in self.my_sim.bot_coordinates:
-            qp.drawEllipse(self.frame_x + self.my_sim.field_size_x // 2 * 5 * field_constant, 
-                self.frame_y + self.my_sim.field_size_y // 2 * 5 * field_constant, 5 * field_constant, 5 * field_constant)
+            qp.drawEllipse(self.frame_x + self.my_sim.field_size_y // 2 * 5 * field_constant, 
+                self.frame_y + self.my_sim.field_size_x // 2 * 5 * field_constant, 5 * field_constant, 5 * field_constant)
 
         # draw resources
         qp.setBrush(QBrush(Qt.blue, Qt.SolidPattern))
         for resource in self.my_sim.resource_set:
-            qp.drawRect(self.frame_x + resource[0] * 5 * field_constant, 
-                self.frame_y + resource[1] * 5 * field_constant, 3 * field_constant, 3 * field_constant)
+            qp.drawRect(self.frame_x + resource[1] * 5 * field_constant, 
+                self.frame_y + resource[0] * 5 * field_constant, 3 * field_constant, 3 * field_constant)
         
         # draw bots
         
@@ -81,8 +81,8 @@ class MyForm(QDialog):
             else:
                 qp.setBrush(QBrush(Qt.red, Qt.SolidPattern))
             
-            qp.drawEllipse(self.frame_x + bot.pos_x * 5 * field_constant,
-                self.frame_y + bot.pos_y * 5 * field_constant, 3 * field_constant, 3 * field_constant)
+            qp.drawEllipse(self.frame_x + bot.pos_y * 5 * field_constant,
+                self.frame_y + bot.pos_x * 5 * field_constant, 3 * field_constant, 3 * field_constant)
         
 
         qp.end()

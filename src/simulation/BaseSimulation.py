@@ -161,11 +161,9 @@ class BaseBot:
             print('cant go left')
             self.food_dir.discard('l')
             self.options.discard('l')
-        elif self.pos_x >= (self.current_field_state['field_size'][1] - 1):
+        elif self.pos_y >= (self.current_field_state['field_size'][1] - 1):
             self.food_dir.discard('r')
             self.options.discard('r')
-
-    
     
     def go_to_storage_unit(self) -> None:
         """
