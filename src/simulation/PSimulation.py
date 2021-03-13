@@ -1,6 +1,9 @@
+#!/usr/bin/env python3
+
+import random
+
 import numpy as np
 from pathlib import Path
-from random import random
 from typing import Tuple
 
 if 'simulation' in str(Path().cwd()):
@@ -18,14 +21,9 @@ class ProbabilisticBot(BaseBot):
         self.p_follow_trail: float = p_follow_trail
 
         self.leave_mark: bool = False
+        self.tracking_on: bool = False
 
-    def step(self) -> Tuple[int, int, bool]:
-        """
-        Overwrite of parent class func
-        returns also whether bot leaves pheromone mark
-        """
-        return *super().step(), self.leave_mark
-
+    
     def pick_up_food(self) -> None:
         """
         Overwrite of parent class func
@@ -35,6 +33,9 @@ class ProbabilisticBot(BaseBot):
         if random.random() < self.p_leave_trail:
             self.leave_mark = True
 
+        self.tracking_on = False
+
+    
     def store_food(self) -> None:
         """
         Overwrite of parent class func
@@ -42,6 +43,105 @@ class ProbabilisticBot(BaseBot):
         """
         super().store_food()
         self.leave_mark = False
+
+    
+    def is_on_trail(self) -> bool:
+        """
+        Return if bot is on trail
+        """
+        return (self.pos_x, self.pos_y) in self.current_field_state['trails']
+
+    
+    def check_for_trail(self) -> None:
+        """
+        Check for pheromone trail in proximity
+        """
+        if (self.pos_x - 1, self.pos_y) in self.current_field_state['trails']:
+            self.trails_sensed.add('u')
+
+        if (self.pos_x + 1, self.pos_y) in self.current_field_state['trails']:
+            self.trails_sensed.add('d')
+
+        if (self.pos_x, self.pos_y + 1) in self.current_field_state['trails']:
+            self.trails_sensed.add('r')
+
+        if (self.pos_x, self.pos_y - 1) in self.current_field_state['trails']:
+            self.trails_sensed.add('l')
+
+        # only keep directions to food and not to center
+        for el in self.get_dir_to_storage_unit():
+            self.trails_sensed.discard(el) 
+
+    
+    def decide_to_track(self) -> None:
+        """
+        Make decision whether to track trail or not
+        """
+        if random.random() < self.p_follow_trail:
+            self.tracking_on = True
+
+    
+    
+    def update_env(self, state: Dict) -> int:
+
+        food_stored = 0
+
+        # set initial state
+        self.options = {'u', 'd', 'l', 'r'}
+        self.food_dir = set()
+        self.trails_sensed = set()
+
+        self.current_field_state = state
+
+        self.storage_x = self.current_field_state['field_size'][0] // 2
+        self.storage_y = self.current_field_state['field_size'][1] // 2
+
+        if not self.has_food:
+            # if on food grab it and that is what you do for the step
+            if self.is_on_food():
+                self.pick_up_food()
+
+            else:
+                # if not on food check for food in proximity
+                self.check_for_close_food() 
+                
+                if not self.food_one_away:
+                    self.check_for_food_two()
+                
+                # and check for trails
+                # 
+                if self.tracking_on:
+                    self.check_for_trail()
+                else:
+                    self.check_for_trail()
+                    if len(self.trails_sensed) >= 1:
+                        self.decide_to_track()
+                        if not self.tracking_on:
+                            self.trails_sensed = set() 
+        else:
+            if self.is_in_storage_unit():
+                self.store_food()
+                food_stored = 1
+            
+            else:
+                self.go_to_storage_unit()
+
+        self.protect_from_collision()
+        self.avoid_walls()
+
+        return food_stored
+    
+    
+    def step(self) -> Tuple[int, int, bool]:
+        
+        if len(self.food_dir) > 0:
+            self._move_according_to_direction(random.choice(list(self.food_dir)))
+        elif len(self.trails_sensed) > 0:
+            self._move_according_to_direction(random.choice(list(self.trails_sensed)))
+        elif len(self.options) > 0:
+            self._move_according_to_direction(random.choice(list(self.options)))
+        # else stay in place
+        return self.pos_x, self.pos_y, self.leave_mark
 
 
 class ProbabilisticSimulation(DummySim):
@@ -55,6 +155,7 @@ class ProbabilisticSimulation(DummySim):
         self.p_follow_trail = p_follow_trail
 
         self.trails: Dict[Tuple[int, int]: int] = dict()
+    
     
     def init_bots(self) -> None:
         """
@@ -75,12 +176,14 @@ class ProbabilisticSimulation(DummySim):
             self.bots.append(ProbabilisticBot(x, y, p_leave_trail = self.p_leave_trail, p_follow_trail = self.p_follow_trail))
 
 
+    
     def trail_decay(self):
         """
         Make trails decay over time
         """
         self.trails = {key: value - 1 for (key, value) in self.trails.items() if value > 1}
 
+    
     def simulate_step(self) -> None:      
 
         field_state = {
@@ -107,24 +210,24 @@ class ProbabilisticSimulation(DummySim):
 
 
 def main():
-    my_sim = ProbabilisticSimulation(field_size = (20, 20), n_bots = 3, p_resource = 0.03, p_leave_trail = 1, p_follow_trail = 0.5)
+    my_sim = ProbabilisticSimulation(field_size = (100, 100), n_bots = 10, p_resource = 0.1, p_leave_trail = 0.2, p_follow_trail = 0.1)
     my_sim.init_resources()
     my_sim.init_bots()
-    for _ in range(3):
-        #if _ % 1000 == 99:
-        print(f'\nRound {_}\n')
-        print(f'Before step:')
-        print(f'bot_coordinates:{my_sim.bot_coordinates}')
-        print(f'resource_coordinates:{my_sim.resource_set}')
-        for bot in my_sim.bots:
-            bot.print_bot()
+    for _ in range(100000):
+        if _ % 100 == 99:
+            print(f'\nRound {_}\n')
+            print(f'Before step:')
+            print(f'bot_coordinates:{my_sim.bot_coordinates}')
+            print(f'resource_coordinates:{my_sim.resource_set}')
+            for bot in my_sim.bots:
+                bot.print_bot()
 
-        my_sim.simulate_step()
-        print(f'\nAfter step:')
-        print(f'bot_coordinates:{my_sim.bot_coordinates}')
-        print(f'resource_coordinates:{my_sim.resource_set}')
-        for bot in my_sim.bots:
-            bot.print_bot()
+            my_sim.simulate_step()
+            print(f'\nAfter step:')
+            print(f'bot_coordinates:{my_sim.bot_coordinates}')
+            print(f'resource_coordinates:{my_sim.resource_set}')
+            for bot in my_sim.bots:
+                bot.print_bot()
 
     print(f'{my_sim.stored_food}')
 

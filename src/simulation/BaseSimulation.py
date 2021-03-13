@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import numpy as np
 from typing import Dict, Tuple, List, Set
 import random
@@ -169,19 +171,27 @@ class BaseBot:
         """
         Move back to storage unit
         """
-        self.options = set() # first empty options 
+        self.options = self.get_dir_to_storage_unit() 
+        
+
+    def get_dir_to_storage_unit(self) -> Set['str']:
+        """
+        Get directions to storage unit
+        """
+        directions = set()
         
         if self.pos_y > self.storage_y:
-            self.options.add('l')
+            directions.add('l')
         elif self.pos_y < self.storage_y:
-            self.options.add('r')
+            directions.add('r')
         
         if self.pos_x > self.storage_x:
-            self.options.add('u')
+            directions.add('u')
         elif self.pos_x < self.storage_x:
-            self.options.add('d')
+            directions.add('d')
 
-    
+        return directions
+
     
     def is_on_food(self) -> bool:
         """
@@ -244,6 +254,8 @@ class BaseBot:
             
             else:
                 self.go_to_storage_unit()
+
+        
 
         self.protect_from_collision()
         self.avoid_walls()
