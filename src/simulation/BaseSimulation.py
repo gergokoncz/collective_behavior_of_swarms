@@ -31,25 +31,25 @@ class BaseBot:
             self.food_dir.add('u')
             self.food_one_away = True
             
-            print('food found up')
+            #print('food found up')
 
         if (self.pos_x + 1, self.pos_y) in self.current_field_state['resource_coordinates']:
             self.food_dir.add('d')
             self.food_one_away = True
             
-            print('food found down')
+            #print('food found down')
 
         if (self.pos_x, self.pos_y + 1) in self.current_field_state['resource_coordinates']:
             self.food_dir.add('r')
             self.food_one_away = True
             
-            print('food found right')
+            #print('food found right')
 
         if (self.pos_x, self.pos_y - 1) in self.current_field_state['resource_coordinates']:
             self.food_dir.add('l')
             self.food_one_away = True
             
-            print('food found left')
+            #print('food found left')
 
     
     def check_for_food_two(self) -> None:
@@ -151,16 +151,16 @@ class BaseBot:
         Can't leave environment
         """
         if self.pos_x == 0:
-            print('cant go up')
+            #print('cant go up')
             self.food_dir.discard('u')
             self.options.discard('u')
         elif self.pos_x >= (self.current_field_state['field_size'][0] - 1):
-            print('cant go down')
+            #print('cant go down')
             self.food_dir.discard('d')
             self.options.discard('d')
 
         if self.pos_y == 0:
-            print('cant go left')
+            #print('cant go left')
             self.food_dir.discard('l')
             self.options.discard('l')
         elif self.pos_y >= (self.current_field_state['field_size'][1] - 1):
@@ -334,13 +334,13 @@ class DummySim:
         for x in no_res_x_range:
             for y in no_res_y_range:
                 no_res_field_set.add((x, y))
-        print(len(no_res_field_set))
+        #print(len(no_res_field_set))
 
         
         xs, ys = np.where(self.resource_field == 1)
         self.resource_dict = {(x, y): int(np.random.normal(self.resource_dist_mean, self.resource_dist_std)) 
             for x,y in zip(xs, ys) if (x, y) not in no_res_field_set}
-        print(self.resource_dict)
+        #print(self.resource_dict)
 
     def init_bots(self) -> None:
         """
