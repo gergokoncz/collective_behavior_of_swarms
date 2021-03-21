@@ -10,8 +10,8 @@ from simulation.PSimulation import *
 from gui.SimulationWindow import *
 
 # base variables
-field_x = 10
-field_y = 10
+field_x = 100
+field_y = 100
 
 field_constant = 100 / field_x
 

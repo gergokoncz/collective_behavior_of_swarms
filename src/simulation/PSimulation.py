@@ -210,7 +210,7 @@ class ProbabilisticSimulation(DummySim):
 
 
 def main():
-    my_sim = ProbabilisticSimulation(field_size = (100, 100), n_bots = 10, p_resource = 0.1, p_leave_trail = 0.2, p_follow_trail = 0.1)
+    my_sim = ProbabilisticSimulation(field_size = (100, 100), n_bots = 10, p_resource = 0.05, p_leave_trail = 0.2, p_follow_trail = 0.1)
     my_sim.init_resources()
     my_sim.init_bots()
     for _ in range(100000):

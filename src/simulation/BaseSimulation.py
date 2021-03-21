@@ -319,9 +319,21 @@ class DummySim:
         chances_field = np.random.rand(self.field_size_x, self.field_size_y)
         self.resource_field = np.zeros((self.field_size_x, self.field_size_y))
         self.resource_field[chances_field < self.p_resource] = 1
+
+        # resources should not be close to the storage center
+        no_res_lim_x, no_res_lim_y = self.field_size_x // 10, self.field_size_y // 10
+        center_x, center_y = self.field_size_x // 2, self.field_size_y // 2
+        no_res_x_range = [x for x in range(center_x - no_res_lim_x, center_x + no_res_lim_x)]
+        no_res_y_range = [y for y in range(center_y - no_res_lim_y, center_y + no_res_lim_y)]
+        no_res_field_set = set()
+        for x in no_res_x_range:
+            for y in no_res_y_range:
+                no_res_field_set.add((x, y))
+        print(len(no_res_field_set))
+
         
         xs, ys = np.where(self.resource_field == 1)
-        self.resource_set = {(x, y) for x,y in zip(xs, ys)}
+        self.resource_set = {(x, y) for x,y in zip(xs, ys) if (x, y) not in no_res_field_set}
         self.resource_set.discard((self.field_size_x // 2, self.field_size_y // 2))
 
     def init_bots(self) -> None:
