@@ -82,9 +82,10 @@ class ProbabilisticBot(BaseBot):
 
     
     
-    def update_env(self, state: Dict) -> int:
+    def update_env(self, state: Dict) -> Tuple[int, bool]:
 
         food_stored = 0
+        food_picked_up = False
 
         # set initial state
         self.options = {'u', 'd', 'l', 'r'}
@@ -100,6 +101,7 @@ class ProbabilisticBot(BaseBot):
             # if on food grab it and that is what you do for the step
             if self.is_on_food():
                 self.pick_up_food()
+                food_picked_up = True
 
             else:
                 # if not on food check for food in proximity
@@ -129,7 +131,7 @@ class ProbabilisticBot(BaseBot):
         self.protect_from_collision()
         self.avoid_walls()
 
-        return food_stored
+        return food_stored, food_picked_up
     
     
     def step(self) -> Tuple[int, int, bool]:
@@ -146,10 +148,10 @@ class ProbabilisticBot(BaseBot):
 
 class ProbabilisticSimulation(DummySim):
     
-    def __init__(self, field_size: Tuple[int, int], n_bots: int, p_resource: float, 
+    def __init__(self, field_size: Tuple[int, int], n_bots: int, p_resource: float, resource_dist: Tuple[float, float],
         *, p_leave_trail: float, p_follow_trail: float):
         
-        super().__init__(field_size, n_bots, p_resource)
+        super().__init__(field_size, n_bots, p_resource, resource_dist)
 
         self.p_leave_trail = p_leave_trail
         self.p_follow_trail = p_follow_trail
@@ -185,19 +187,28 @@ class ProbabilisticSimulation(DummySim):
 
     
     def simulate_step(self) -> None:      
-
-        field_state = {
-            'field_size': (self.field_size_x, self.field_size_y),
-            'bot_coordinates' : self.bot_coordinates,
-            'resource_coordinates': self.resource_set,
-            'trails': self.trails,
-        }
         
         new_bot_coordinates = set()
         new_trails = set()
+        
         for bot in self.bots:
             
-            self.stored_food += bot.update_env(field_state)
+            field_state = {
+                'field_size': (self.field_size_x, self.field_size_y),
+                'bot_coordinates' : self.bot_coordinates,
+                'resource_coordinates': self.resource_dict,
+                'trails': self.trails,
+            }
+
+            stored_food, food_picked = bot.update_env(field_state)
+            # increase stored food count
+            self.stored_food += stored_food
+            # if food is picked remove a unit from resource field
+            if food_picked:
+                self.resource_dict[(bot.pos_x, bot.pos_y)] -= 1
+                if self.resource_dict[bot.pos_x, bot.pos_y] <= 0:
+                    del self.resource_dict[bot.pos_x, bot.pos_y]
+            
             x,y, mark_left = bot.step()
             new_bot_coordinates.add((x, y))
             if mark_left:
@@ -210,7 +221,7 @@ class ProbabilisticSimulation(DummySim):
 
 
 def main():
-    my_sim = ProbabilisticSimulation(field_size = (100, 100), n_bots = 10, p_resource = 0.05, p_leave_trail = 0.2, p_follow_trail = 0.1)
+    my_sim = ProbabilisticSimulation(field_size = (100, 100), n_bots = 10, p_resource = 0.05, resource_dist = (10, 2), p_leave_trail = 0.2, p_follow_trail = 0.1)
     my_sim.init_resources()
     my_sim.init_bots()
     for _ in range(100000):
@@ -218,14 +229,14 @@ def main():
             print(f'\nRound {_}\n')
             print(f'Before step:')
             print(f'bot_coordinates:{my_sim.bot_coordinates}')
-            print(f'resource_coordinates:{my_sim.resource_set}')
+            print(f'resource_coordinates:{my_sim.resource_dict}')
             for bot in my_sim.bots:
                 bot.print_bot()
 
             my_sim.simulate_step()
             print(f'\nAfter step:')
             print(f'bot_coordinates:{my_sim.bot_coordinates}')
-            print(f'resource_coordinates:{my_sim.resource_set}')
+            print(f'resource_coordinates:{my_sim.resource_dict}')
             for bot in my_sim.bots:
                 bot.print_bot()
 

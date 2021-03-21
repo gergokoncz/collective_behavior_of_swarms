@@ -10,8 +10,8 @@ from simulation.PSimulation import *
 from gui.SimulationWindow import *
 
 # base variables
-field_x = 100
-field_y = 100
+field_x = 10
+field_y = 10
 
 field_constant = 100 / field_x
 
@@ -20,7 +20,7 @@ class MyForm(QDialog):
         super().__init__()
         
         self.my_sim = ProbabilisticSimulation(field_size = (field_x, field_y), 
-            n_bots=3, p_resource=0.03, p_leave_trail=1, p_follow_trail=0.5)
+            n_bots=3, p_resource=0.03, resource_dist = (2, 1), p_leave_trail=1, p_follow_trail=0.5)
         self.my_sim.init_resources()
         self.my_sim.init_bots()
 
@@ -67,7 +67,7 @@ class MyForm(QDialog):
 
         # draw resources
         qp.setBrush(QBrush(Qt.blue, Qt.SolidPattern))
-        for resource in self.my_sim.resource_set:
+        for resource in self.my_sim.resource_dict:
             qp.drawRect(self.frame_x + resource[1] * 5 * field_constant, 
                 self.frame_y + resource[0] * 5 * field_constant, 3 * field_constant, 3 * field_constant)
         

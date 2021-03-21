@@ -223,9 +223,10 @@ class BaseBot:
         self.options = set()
     
     
-    def update_env(self, state: Dict) -> int:
+    def update_env(self, state: Dict) -> Tuple[int, bool]:
 
         food_stored = 0
+        food_picked_up = False
 
         # set initial state
         self.options = {'u', 'd', 'l', 'r'}
@@ -240,6 +241,7 @@ class BaseBot:
             # if on food grab it and that is what you do for the step
             if self.is_on_food():
                 self.pick_up_food()
+                food_picked_up = True
 
             else:
                 self.check_for_close_food() 
@@ -260,7 +262,7 @@ class BaseBot:
         self.protect_from_collision()
         self.avoid_walls()
 
-        return food_stored
+        return food_stored, food_picked_up
 
     
     
@@ -297,7 +299,7 @@ class BaseBot:
         print(f'food seen: {self.food_dir}')
 
 class DummySim:
-    def __init__(self, field_size: Tuple[int, int], n_bots: int, p_resource: float):
+    def __init__(self, field_size: Tuple[int, int], n_bots: int, p_resource: float, resource_dist: Tuple[float, float]):
         
         self.field_size_x = field_size[0]
         self.field_size_y = field_size[1]
@@ -307,7 +309,10 @@ class DummySim:
         self.bot_coordinates: Set = set()
         
         self.p_resource = p_resource
-        self.resource_set: Set = set()
+        self.resource_dict: Dict = dict()
+
+        self.resource_dist_mean = resource_dist[0]
+        self.resource_dist_std = resource_dist[1]
 
         self.stored_food = 0
 
@@ -333,8 +338,9 @@ class DummySim:
 
         
         xs, ys = np.where(self.resource_field == 1)
-        self.resource_set = {(x, y) for x,y in zip(xs, ys) if (x, y) not in no_res_field_set}
-        self.resource_set.discard((self.field_size_x // 2, self.field_size_y // 2))
+        self.resource_dict = {(x, y): int(np.random.normal(self.resource_dist_mean, self.resource_dist_std)) 
+            for x,y in zip(xs, ys) if (x, y) not in no_res_field_set}
+        print(self.resource_dict)
 
     def init_bots(self) -> None:
         """
@@ -356,24 +362,34 @@ class DummySim:
 
     def simulate_step(self) -> None:
         
-        field_state = {
-            'field_size': (self.field_size_x, self.field_size_y),
-            'bot_coordinates' : self.bot_coordinates,
-            'resource_coordinates': self.resource_set
-        }
-        
         new_bot_coordinates = set()
+        
         for bot in self.bots:
+        
+            field_state = {
+                'field_size': (self.field_size_x, self.field_size_y),
+                'bot_coordinates' : self.bot_coordinates,
+                'resource_coordinates': self.resource_dict
+            }
             
-            self.stored_food += bot.update_env(field_state)
+            stored_food, food_picked = bot.update_env(field_state)
+            # increase stored food count
+            self.stored_food += stored_food
+            # if food is picked remove a unit from resource field
+            if food_picked:
+                self.resource_dict[(bot.pos_x, bot.pos_y)] -= 1
+                if self.resource_dict[bot.pos_x, bot.pos_y] <= 0:
+                    del self.resource_dict[bot.pos_x, bot.pos_y]
+            
             x,y = bot.step()
             new_bot_coordinates.add((x, y))
 
-        self.bot_coordinates = new_bot_coordinates
+        
 
+        self.bot_coordinates = new_bot_coordinates
     
 def main():
-    my_sim = DummySim(field_size = (100, 100), n_bots = 10, p_resource = 0.01)
+    my_sim = DummySim(field_size = (100, 100), n_bots = 10, p_resource = 0.01, resource_dist = (10, 2))
     my_sim.init_resources()
     my_sim.init_bots()
     for _ in range(1000):
