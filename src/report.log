@@ -13,3 +13,4 @@
 2021-04-05 14:58:12,744 - pyswarms.single.global_best - INFO - Optimize for 10 iters with {'c1': 0.5, 'c2': 0.5, 'w': 0.05}
 2021-04-05 14:59:05,524 - pyswarms.single.global_best - INFO - Optimize for 10 iters with {'c1': 0.5, 'c2': 0.5, 'w': 0.05}
 2021-04-05 15:00:38,685 - pyswarms.single.global_best - INFO - Optimization finished | best cost: -385.0, best pos: [0.79213631 0.88893409]
+2021-04-05 22:20:06,641 - pyswarms.single.global_best - INFO - Optimize for 20 iters with {'c1': 0.5, 'c2': 0.5, 'w': 0.05}
