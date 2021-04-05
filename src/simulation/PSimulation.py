@@ -217,7 +217,7 @@ class ProbabilisticSimulation(DummySim):
         self.bot_coordinates = new_bot_coordinates
         self.trail_decay()
         for val in new_trails:
-            self.trails[val] = 5
+            self.trails[val] = 80
 
 
 def main():
