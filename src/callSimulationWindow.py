@@ -20,8 +20,9 @@ class MyForm(QDialog):
         super().__init__()
         
         self.my_sim = ProbabilisticSimulation(field_size = (field_x, field_y), 
-            n_bots=10, p_resource=0.01, resource_dist = (10, 3), p_leave_trail=1, p_follow_trail=1)
+            n_bots=10, p_resource=0.1, resource_dist = (10, 3), p_leave_trail=1, p_follow_trail=1)
         self.my_sim.init_resources()
+        self.my_sim.patch_resources()
         self.my_sim.init_bots()
 
         self.frame_x = 150

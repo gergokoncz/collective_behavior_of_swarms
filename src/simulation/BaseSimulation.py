@@ -5,6 +5,8 @@ from typing import Dict, Tuple, List, Set
 import random
 import math
 
+from sklearn.cluster import KMeans
+
 class BaseBot:
     def __init__(self, pos_x: int, pos_y: int):
         self.pos_x = pos_x
@@ -335,12 +337,37 @@ class DummySim:
             for y in no_res_y_range:
                 no_res_field_set.add((x, y))
         #print(len(no_res_field_set))
-
         
         xs, ys = np.where(self.resource_field == 1)
         self.resource_dict = {(x, y): int(np.random.normal(self.resource_dist_mean, self.resource_dist_std)) 
             for x,y in zip(xs, ys) if (x, y) not in no_res_field_set}
         #print(self.resource_dict)
+
+    def patch_resources(self):
+        resources = []
+        for k in self.resource_dict:
+            resources.append(list(k))
+        X = np.array(resources, dtype = np.int16)
+        kmeans = KMeans(n_clusters = 10).fit(X)
+        predictions = kmeans.predict(X)
+        for i in range(X.shape[0]):
+            current_vals = X[i]
+            current_cc = kmeans.cluster_centers_[predictions[i]]
+            x_diff, y_diff = self.calc_resource_move_vector(current_cc[0], current_cc[1], current_vals[0], current_vals[1])
+            resource_amount = self.resource_dict[current_vals[0], current_vals[1]]
+            # update resource dict
+            self.resource_dict[current_vals[0], current_vals[1]] -= resource_amount
+            self.resource_dict[current_vals[0] - x_diff, current_vals[1] - y_diff] = self.resource_dict.get((current_vals[0] - x_diff, current_vals[1] - y_diff), 0) + resource_amount
+
+        
+        self.resource_dict = {k:v for k, v in self.resource_dict.items() if v > 0}
+        
+
+    def calc_resource_move_vector(self, xc, yc, x1, y1):
+        delta_x = (x1 - xc) // 1.5
+        delta_y = (y1 - yc) // 1.5
+        return delta_x, delta_y
+
 
     def init_bots(self) -> None:
         """
@@ -391,14 +418,15 @@ class DummySim:
 def main():
     my_sim = DummySim(field_size = (100, 100), n_bots = 10, p_resource = 0.01, resource_dist = (10, 2))
     my_sim.init_resources()
+    my_sim.patch_resources()
     my_sim.init_bots()
-    for _ in range(1000):
-        if _ % 1000 == 99:
-            print(f'\nRound {_}\n')
-            print(f'{my_sim.bot_coordinates}')
-        my_sim.simulate_step()
+#    for _ in range(1000):
+#        if _ % 1000 == 99:
+#            print(f'\nRound {_}\n')
+#            print(f'{my_sim.bot_coordinates}')
+#        my_sim.simulate_step()
 
-    print(f'{my_sim.stored_food}')
+#    print(f'{my_sim.stored_food}')
 
 if __name__ == '__main__':
     main()
