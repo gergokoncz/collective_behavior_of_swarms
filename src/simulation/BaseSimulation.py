@@ -354,10 +354,10 @@ class DummySim:
             current_vals = X[i]
             current_cc = kmeans.cluster_centers_[predictions[i]]
             x_diff, y_diff = self.calc_resource_move_vector(current_cc[0], current_cc[1], current_vals[0], current_vals[1])
-            resource_amount = self.resource_dict[current_vals[0], current_vals[1]]
+            resource_amount = self.resource_dict[int(current_vals[0]), int(current_vals[1])]
             # update resource dict
-            self.resource_dict[current_vals[0], current_vals[1]] -= resource_amount
-            self.resource_dict[current_vals[0] - x_diff, current_vals[1] - y_diff] = self.resource_dict.get((current_vals[0] - x_diff, current_vals[1] - y_diff), 0) + resource_amount
+            self.resource_dict[int(current_vals[0]), int(current_vals[1])] -= resource_amount
+            self.resource_dict[int(current_vals[0] - x_diff), int(current_vals[1] - y_diff)] = self.resource_dict.get((int(current_vals[0] - x_diff), int(current_vals[1] - y_diff)), 0) + resource_amount
 
         
         self.resource_dict = {k:v for k, v in self.resource_dict.items() if v > 0}

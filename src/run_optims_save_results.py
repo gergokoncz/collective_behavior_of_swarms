@@ -58,7 +58,7 @@ class Logline:
 logger = Logline()
 
 # set this one
-logger.run = "1000"
+logger.run = "11"
 
 
 def genal_fitness(p):
@@ -77,17 +77,20 @@ def genal_call_psim(x, p, steps = 5_000):
     global logger
     global genealg_counter
     genealg_counter += 1
+    print(steps)
     print(f"sim: {genealg_counter}")
 
     my_sim = ProbabilisticSimulation(
         field_size = (100, 100), 
         n_bots=10,
         p_resource = p,
-        resource_dist = (10, 3),
+        resource_dist = (1, 0),
         p_leave_trail = x[0],
         p_follow_trail = x[1]
         )
     my_sim.init_resources()
+    #my_sim.patch_resources()
+    #print(my_sim.resource_dict)
     my_sim.init_bots()
     for _ in range(steps):
         my_sim.simulate_step()
@@ -124,8 +127,11 @@ def genal_optim(p):
     logger.trail_decay = "100"
 
     logger.p_resource = str(p)
-    logger.resource_dist_mean = "10"
-    logger.resource_dist_std = "3"
+    logger.resource_dist_mean = "1"
+    logger.resource_dist_std = "0"
+
+    # for patching 
+    logger.is_selected = ''
     
     solver = ContinuousGenAlgSolver(
         n_genes = 2,
@@ -225,7 +231,7 @@ def main() -> None:
     #for i in [0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008, 0.009, 0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05, 0.055, 0.06, 0.065, 0.07]:
     #    s = pso_optim(p = i, steps = 5_000)
 
-    genal_optim(1)
+    genal_optim(0.04)
     logger.close_io()
 
 if __name__ == '__main__':
